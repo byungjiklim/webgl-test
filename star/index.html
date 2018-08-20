@@ -1,6 +1,11 @@
-<html>
+<!doctype html>
+<html lang="en">
 
-<head></head>
+<head>
+    <meta charset="utf-8">
+    <title>[bj test web]</title>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+</head>
 
 <script>
 
@@ -31,8 +36,8 @@ function initShader(gl) {
         varying lowp vec4 vColor;
 
         void main(void) {
-        gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-        vColor = aVertexColor;
+            gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+            vColor = aVertexColor;
         }
     `;
 
@@ -42,14 +47,14 @@ function initShader(gl) {
         varying lowp vec4 vColor;
 
         void main(void) {
-        gl_FragColor = vColor;
+            gl_FragColor = vColor;
         }
     `;
     
     const vertexShader = getShader(gl, gl.VERTEX_SHADER, vsSource);
     const fragmentShader = getShader(gl, gl.FRAGMENT_SHADER, fsSource);
  
-    shaderProgram = gl.createProgram();
+    const shaderProgram = gl.createProgram();
     gl.attachShader(shaderProgram, fragmentShader);
     gl.attachShader(shaderProgram, vertexShader);
     gl.linkProgram(shaderProgram);
@@ -72,9 +77,7 @@ function init_gl(canvas) {
         // const에 따른 변수 scope
         //gl = canvas.getContext("experimental-webgl");
         gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-        
-        gl.viewportWidth = canvas.width;
-        gl.viewportHeight = canvas.height;
+
     } catch(e) {
         if (!gl) {
             alert("unable to initialize webgl");
@@ -100,16 +103,46 @@ function makeProgramInfo(gl, shaderProgram) {
     return programInfo;
 }
 
-function makeStartBuffers(gl) {
-    positionBuffer = gl.createBuffer();
+function makeStartBuffers(gl, deltaTime) {
+    const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    const tVer = deltaTime % 2;
+    const positions = [
+        // 1
+        0.0, 0.0,  0.0,
+        0.0, tVer,  0.0,
+        1.0, 1.0,  -1.5,
 
-    positions = [
-         0.0,  1.0,  0.0,
-        -1.0, -1.0,  0.0,
-         1.0, -1.0,  0.0
-        // right
+        0.0, 0.0,  0.0,
+        1.0, 1.0,  -1.5,
+        2.0, 0.0,  0.0,
 
+        // 1.0, 1.0, 0.0,
+        // 0.0, 0.0, 0.0,
+        // 1.2, -1.0, 0.0,
+
+        // 0.0, 0.0, 0.0,
+        // 1.2, -1.0, 0.0,
+        // -0.2, -1.5, 0.0,
+
+        // 0.0, 0.0, 0.0,
+        // -0.2, -1.5, 0.0,
+
+        // 0.0, 0.0,  0.0,
+        // 1.0,  1.0,  0.0,
+        // 1.0,  -1.0,  0.0,
+
+        // 1.0,  1.0, -1.0,
+        // 1.0, -1.0, -1.0,
+        // -1.0,  1.0, -1.0,
+
+        // -1.0,  1.0,  1.0,
+        // 1.0,  1.0,  1.0,
+        // 1.0,  1.0, -1.0,
+
+        // -1.0, -1.0, -1.0,
+        // 1.0, -1.0, -1.0,
+        // 1.0, -1.0,  1.0,
         // 1
 
         // 2
@@ -131,24 +164,24 @@ function makeStartBuffers(gl) {
         // 10
     ];
 
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, 
+    new Float32Array(positions), gl.STATIC_DRAW);
     
     
     //setColor
 
-    colors = [];
-    faceColors = [
-    [1.0,  1.0,  1.0,  1.0],    // Front face: white
-    [1.0,  0.0,  0.0,  1.0],    // Back face: red
-    [0.0,  1.0,  0.0,  1.0],    // Top face: green
-    [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
-    [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
-    [1.0,  0.0,  1.0,  1.0],    // Left face: purple
+    const faceColors = [
+        [1.0,  1.0,  1.0,  1.0],    // Front face: white
+        [1.0,  0.0,  0.0,  1.0],    // Back face: red
+        [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
+        [0.0,  1.0,  0.0,  1.0],    // Top face: green
+        [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
+        [1.0,  0.0,  1.0,  1.0],    // Left face: purple
     ];
 
     var colors = [];
     for (var j = 0; j < faceColors.length; ++j) {
-        c = faceColors[j];
+        const c = faceColors[j];
 
         //concat ??
         colors = colors.concat(c, c, c, c);
@@ -162,17 +195,24 @@ function makeStartBuffers(gl) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
     const indices = [
-        0,  1,  2,      0,  2,  3    // front
-        // 4,  5,  6,      4,  6,  7,    // back
-        // 8,  9,  10,     8,  10, 11,   // top
-        // 12, 13, 14,     12, 14, 15,   // bottom
-        // 16, 17, 18,     16, 18, 19,   // right
-        // 20, 21, 22,     20, 22, 23,   // left
+        0,  1,  2,      
+        3,  4,  5,    // front
+        6,  7,  8,      
+        4,  6,  7,    // back
+        8,  9,  10,     
+        8,  10, 11,   // top
+        12, 13, 14,     
+        12, 14, 15,   // bottom
+        16, 17, 18,     
+        16, 18, 19,   // right
+        20, 21, 22,     
+        20, 22, 23,   // left
     ];
 
     // Now send the element array to GL
 
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, 
+        new Uint16Array(indices), gl.STATIC_DRAW);
 
     return {
         position: positionBuffer,
@@ -191,15 +231,15 @@ function drawScene(gl, buffers, programInfo) {
 
     //gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
 
-    
-    projectDrawingMtx = mat4.create();
+
    
-    const fieldOfView = 45 * Math.PI / 180;   // in radians
+    const fieldOfView = 60 * Math.PI / 180;   // in radians
     const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
     const zNear = 0.1;
     const zFar = 100.0;
     const projectionMatrix = mat4.create();
-
+    mat4.identity(projectionMatrix);
+    //mat4.scale(0.5, 1);
     // note: glmatrix.js always has the first argument
     // as the destination to receive the result.
     mat4.perspective(projectionMatrix,
@@ -209,8 +249,8 @@ function drawScene(gl, buffers, programInfo) {
                     zFar);
    
 
-    modelViewMtx = mat4.create();
-    //mat4.identity(modelViewMtx);
+    const modelViewMtx = mat4.create();
+    mat4.identity(modelViewMtx);
 
     mat4.translate(modelViewMtx, modelViewMtx, [-0.0, 0.0, -6.0]);
 
@@ -221,7 +261,7 @@ function drawScene(gl, buffers, programInfo) {
         const stride = 0;
         const offset = 0;
        
-
+        
         gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
         gl.vertexAttribPointer(
             programInfo.attribLocations.vertexPosition,
@@ -266,7 +306,7 @@ function drawScene(gl, buffers, programInfo) {
     gl.uniformMatrix4fv(
         programInfo.uniformLocations.projectionMatrix,
         false,
-        projectDrawingMtx);
+        projectionMatrix);
     gl.uniformMatrix4fv(
         programInfo.uniformLocations.modelViewMatrix,
         false,
@@ -293,31 +333,40 @@ function drawScene(gl, buffers, programInfo) {
 
 }
 
-function star_maint() {
+function star_main() {
     var canvas = document.getElementById("gl-canvas");
 
     const gl = init_gl(canvas);
     const shaderProgram = initShader(gl);
     const programInfo = makeProgramInfo(gl, shaderProgram);
-    const buffers = makeStartBuffers(gl);
 
-    
-    //gl.clearColor(0.0, 1.0, 0.0, 0.0);
     //gl.enable(gl.DEPTH_TEST);
-    
+    var then = 0;
+    var distance = 0;
+    function render(now) {        
+        now *= 0.001;  // convert to seconds
+        const deltaTime = now - then;
+        then = now;
+        distance += deltaTime;
+        const buffers = makeStartBuffers(gl, distance);
+        drawScene(gl, buffers, programInfo);
 
-    drawScene(gl, buffers, programInfo);
+        requestAnimationFrame(render);
+    }
+    requestAnimationFrame(render);
+
+    
 }
 
 </script>
 
 
-<body onload="star_maint()">
+<body onload="star_main()">
     <canvas id="gl-canvas" width="640" height="480">
       Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
     </canvas>
 </body>
 
-<script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
+<script type="text/javascript" src="gl-matrix.js"></script>
 
 </html>
